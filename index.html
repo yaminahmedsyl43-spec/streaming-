@@ -2,90 +2,75 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Yamin Ahmed Vlog | Live Cam</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yamin Ahmed | Mirror System</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { background: #000; color: white; font-family: sans-serif; text-align: center; margin: 0; overflow-x: hidden; }
-        .container { padding: 20px; padding-bottom: 80px; }
-        .id-display { font-size: 40px; color: #00ffcc; font-weight: bold; margin: 20px 0; background: #1a1a1a; padding: 10px; border-radius: 10px; border: 2px solid #333; }
-        video { width: 100%; max-width: 600px; border-radius: 15px; background: #222; border: 2px solid #00ffcc; transform: scaleX(-1); } /* scaleX(-1) mirrors camera for natural feel */
-        button { background: #00ffcc; color: #000; border: none; padding: 18px; border-radius: 10px; font-weight: bold; width: 100%; max-width: 400px; font-size: 18px; margin: 10px 0; }
-        input { width: 80%; max-width: 300px; padding: 15px; border-radius: 10px; border: none; font-size: 20px; text-align: center; margin-bottom: 10px; }
-        .footer { position: fixed; bottom: 0; width: 100%; background: red; color: white; height: 50px; line-height: 50px; overflow: hidden; white-space: nowrap; font-weight: bold; }
-        .scroll { display: inline-block; animation: scroll 15s linear infinite; }
-        @keyframes scroll { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
+        body { background: #000; color: #fff; font-family: sans-serif; text-align: center; margin: 0; padding: 20px; }
+        .box { border: 2px solid #00ffcc; padding: 20px; border-radius: 20px; background: #111; max-width: 500px; margin: auto; }
+        #my-id { font-size: 35px; color: #00ffcc; font-weight: bold; display: block; margin: 15px 0; }
+        button { width: 100%; padding: 15px; margin: 10px 0; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .btn-green { background: #00ffcc; color: #000; }
+        .btn-white { background: #fff; color: #000; }
+        input { width: 90%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: none; text-align: center; font-size: 18px; }
+        video { width: 100%; margin-top: 20px; border-radius: 10px; background: #222; }
+        .footer { position: fixed; bottom: 0; left: 0; width: 100%; background: red; height: 40px; line-height: 40px; overflow: hidden; }
+        .ticker { display: inline-block; white-space: nowrap; animation: move 15s linear infinite; font-weight: bold; }
+        @keyframes move { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1 style="color: #00ffcc;">Yamin Ahmed Vlog</h1>
-    <p>Your Connection ID:</p>
-    <div id="my-id" class="id-display">Connecting...</div>
+<div class="box">
+    <h2>Yamin Ahmed Vlog</h2>
+    <p>Mobile ID:</p>
+    <span id="my-id">Connecting...</span>
 
-    <div id="phone-ui">
-        <button onclick="startCamera()">TAP TO START CAMERA</button>
-        <p style="font-size: 12px; color: #888;">(Works on iPhone & Android)</p>
-    </div>
+    <button class="btn-green" onclick="tryScreenShare()">START SHARING SCREEN</button>
+    <p style="font-size: 11px; color: #888;">If Screen fails, it will ask for Camera.</p>
 
-    <hr style="border: 1px solid #333; margin: 30px 0;">
+    <hr style="border: 0.5px solid #333; margin: 20px 0;">
 
-    <div id="pc-ui">
-        <input type="text" id="remote-id" placeholder="Enter ID from Phone">
-        <button style="background: white;" onclick="connectToPhone()">WATCH LIVE FROM PC</button>
-    </div>
+    <input type="text" id="remote-id" placeholder="Enter Mobile ID">
+    <button class="btn-white" onclick="watchOnPC()">CONNECT & WATCH</button>
 
-    <video id="videoFeed" autoplay playsinline></video>
+    <video id="display" autoplay playsinline></video>
 </div>
 
 <div class="footer">
-    <div class="scroll">
-        SUBSCRIBE TO YAMIN AHMED VLOG ON YOUTUBE! @YaminOfficial-iq3wp • LIVE LOW LATENCY STREAMING ACTIVE • ENJOY THE VLOG!
-    </div>
+    <div class="ticker">SUBSCRIBE TO YAMIN AHMED VLOG @YaminOfficial-iq3wp • LIVE MIRRORING SYSTEM ACTIVE</div>
 </div>
 
 <script>
-    const randomId = Math.floor(10000000 + Math.random() * 90000000).toString();
-    const peer = new Peer(randomId);
-    let localStream;
+    const rid = Math.floor(10000000 + Math.random() * 90000000).toString();
+    const peer = new Peer(rid);
+    let stream;
 
-    peer.on('open', (id) => {
-        document.getElementById('my-id').innerText = id;
-    });
+    peer.on('open', (id) => { document.getElementById('my-id').innerText = id; });
 
-    // START CAMERA (Phone Side)
-    async function startCamera() {
+    async function tryScreenShare() {
         try {
-            // navigator.mediaDevices.getUserMedia is supported on ALL iPhones
-            localStream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: "user" }, // Use "environment" for back camera
-                audio: true
-            });
-            document.getElementById('videoFeed').srcObject = localStream;
-            alert("Camera Active! Now enter ID " + randomId + " on your Computer.");
-        } catch (err) {
-            alert("Error: " + err.message);
+            // This is the part that usually fails on iPhone
+            stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+        } catch (e) {
+            console.log("Screen share blocked, trying Camera fallback...");
+            // Fallback for iPhone: If Screen Share is blocked, it opens Camera
+            stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         }
+        document.getElementById('display').srcObject = stream;
     }
 
-    // CONNECT (PC Side)
-    function connectToPhone() {
-        const idToCall = document.getElementById('remote-id').value;
-        const call = peer.call(idToCall, null); // PC calls the phone
-        
-        call.on('stream', (remoteStream) => {
-            const vid = document.getElementById('videoFeed');
-            vid.srcObject = remoteStream;
-            vid.style.transform = "scaleX(1)"; // Un-mirror for the viewer
+    function watchOnPC() {
+        const id = document.getElementById('remote-id').value;
+        const call = peer.call(id, null);
+        call.on('stream', (s) => {
+            document.getElementById('display').srcObject = s;
         });
     }
 
-    // ANSWER (Phone Side)
     peer.on('call', (call) => {
-        call.answer(localStream); // Phone sends its camera stream to the PC
+        call.answer(stream);
     });
 </script>
-
 </body>
 </html>
