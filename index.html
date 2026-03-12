@@ -2,119 +2,88 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yamin Ahmed Vlog | Live Stream</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Yamin Ahmed Vlog | Live Cam</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { background: #0f0f0f; color: white; font-family: 'Arial', sans-serif; text-align: center; margin: 0; padding-bottom: 60px; }
-        .card { max-width: 500px; margin: 40px auto; background: #1a1a1a; padding: 25px; border-radius: 20px; box-shadow: 0 0 20px rgba(0,255,204,0.2); border: 1px solid #333; }
-        h1 { color: #00ffcc; font-size: 24px; margin-bottom: 5px; }
-        .id-box { font-size: 32px; font-weight: bold; color: #00ffcc; background: #000; padding: 10px; border-radius: 10px; margin: 15px 0; border: 1px dashed #00ffcc; letter-spacing: 2px; }
-        video { width: 100%; border-radius: 10px; background: #000; margin-top: 15px; border: 2px solid #444; }
-        button { background: #00ffcc; color: #000; border: none; padding: 15px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; margin: 10px 0; font-size: 16px; }
-        input { width: 90%; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #222; color: #fff; text-align: center; font-size: 18px; margin-bottom: 10px; }
-        .status { font-size: 12px; color: #888; margin-top: 5px; }
-        
-        /* The Running Banner */
-        .footer-banner { position: fixed; bottom: 0; left: 0; width: 100%; background: #ff0000; color: white; height: 45px; overflow: hidden; display: flex; align-items: center; border-top: 2px solid #fff; }
-        .ticker { display: inline-block; white-space: nowrap; animation: marquee 20s linear infinite; font-weight: bold; }
-        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-        a { color: white; text-decoration: none; }
+        body { background: #000; color: white; font-family: sans-serif; text-align: center; margin: 0; overflow-x: hidden; }
+        .container { padding: 20px; padding-bottom: 80px; }
+        .id-display { font-size: 40px; color: #00ffcc; font-weight: bold; margin: 20px 0; background: #1a1a1a; padding: 10px; border-radius: 10px; border: 2px solid #333; }
+        video { width: 100%; max-width: 600px; border-radius: 15px; background: #222; border: 2px solid #00ffcc; transform: scaleX(-1); } /* scaleX(-1) mirrors camera for natural feel */
+        button { background: #00ffcc; color: #000; border: none; padding: 18px; border-radius: 10px; font-weight: bold; width: 100%; max-width: 400px; font-size: 18px; margin: 10px 0; }
+        input { width: 80%; max-width: 300px; padding: 15px; border-radius: 10px; border: none; font-size: 20px; text-align: center; margin-bottom: 10px; }
+        .footer { position: fixed; bottom: 0; width: 100%; background: red; color: white; height: 50px; line-height: 50px; overflow: hidden; white-space: nowrap; font-weight: bold; }
+        .scroll { display: inline-block; animation: scroll 15s linear infinite; }
+        @keyframes scroll { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h1>Yamin Ahmed Vlog</h1>
-    <p style="margin:0; font-size:14px; color:#aaa;">Mobile to PC Real-Time Broadcast</p>
-    
-    <div id="my-id" class="id-box">Connecting...</div>
-    <div id="security-warning" style="color: #ff4444; font-size: 12px; display: none;">⚠️ Use HTTPS to enable Screen Sharing!</div>
+<div class="container">
+    <h1 style="color: #00ffcc;">Yamin Ahmed Vlog</h1>
+    <p>Your Connection ID:</p>
+    <div id="my-id" class="id-display">Connecting...</div>
 
-    <div id="mobile-controls">
-        <button id="start-btn" onclick="startCapture()">1. SHARE MOBILE SCREEN</button>
-        <div class="status">Click this on your Phone first</div>
+    <div id="phone-ui">
+        <button onclick="startCamera()">TAP TO START CAMERA</button>
+        <p style="font-size: 12px; color: #888;">(Works on iPhone & Android)</p>
     </div>
 
-    <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
+    <hr style="border: 1px solid #333; margin: 30px 0;">
 
-    <div id="pc-controls">
-        <input type="text" id="remote-id" placeholder="Enter 8-Digit ID">
-        <button style="background: #fff;" onclick="connectToMobile()">2. WATCH ON COMPUTER</button>
+    <div id="pc-ui">
+        <input type="text" id="remote-id" placeholder="Enter ID from Phone">
+        <button style="background: white;" onclick="connectToPhone()">WATCH LIVE FROM PC</button>
     </div>
 
-    <video id="remoteVideo" autoplay playsinline></video>
+    <video id="videoFeed" autoplay playsinline></video>
 </div>
 
-<div class="footer-banner">
-    <div class="ticker">
-        <a href="https://www.youtube.com/@YaminOfficial-iq3wp" target="_blank">
-            SUBSCRIBE TO MY YOUTUBE CHANNEL: Yamin Ahmed Vlog (@YaminOfficial-iq3wp) • JOIN THE FAMILY FOR AMAZING VLOGS! • CLICK HERE TO VISIT!
-        </a>
+<div class="footer">
+    <div class="scroll">
+        SUBSCRIBE TO YAMIN AHMED VLOG ON YOUTUBE! @YaminOfficial-iq3wp • LIVE LOW LATENCY STREAMING ACTIVE • ENJOY THE VLOG!
     </div>
 </div>
 
 <script>
-    // Check for HTTPS
-    if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
-        document.getElementById('security-warning').style.display = 'block';
-    }
-
-    // 1. Generate 8-digit ID
     const randomId = Math.floor(10000000 + Math.random() * 90000000).toString();
-    const peer = new Peer(randomId); 
+    const peer = new Peer(randomId);
     let localStream;
 
     peer.on('open', (id) => {
         document.getElementById('my-id').innerText = id;
     });
 
-    // Error handling
-    peer.on('error', (err) => {
-        console.error(err);
-        if(err.type === 'browser-incompatible') alert("Your browser doesn't support WebRTC.");
-    });
-
-    // --- MOBILE SIDE ---
-    async function startCapture() {
+    // START CAMERA (Phone Side)
+    async function startCamera() {
         try {
-            // Updated constraints for better mobile compatibility
-            const constraints = {
-                video: { cursor: "always", frameRate: 30 },
+            // navigator.mediaDevices.getUserMedia is supported on ALL iPhones
+            localStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: "user" }, // Use "environment" for back camera
                 audio: true
-            };
-            
-            localStream = await navigator.mediaDevices.getDisplayMedia(constraints);
-            document.getElementById('remoteVideo').srcObject = localStream;
-            document.getElementById('start-btn').innerText = "✓ SCREEN SHARING ACTIVE";
-            document.getElementById('start-btn').style.background = "#555";
+            });
+            document.getElementById('videoFeed').srcObject = localStream;
+            alert("Camera Active! Now enter ID " + randomId + " on your Computer.");
         } catch (err) {
-            alert("Error: " + err.message + "\n\nNote: Mobile browsers often block this. Use Chrome on Android or Safari on iOS.");
+            alert("Error: " + err.message);
         }
     }
 
-    // --- PC SIDE ---
-    function connectToMobile() {
-        const targetId = document.getElementById('remote-id').value;
-        if (targetId.length !== 8) return alert("Enter the 8-digit ID from the phone.");
-
-        // Call the phone
-        const call = peer.call(targetId, null); 
+    // CONNECT (PC Side)
+    function connectToPhone() {
+        const idToCall = document.getElementById('remote-id').value;
+        const call = peer.call(idToCall, null); // PC calls the phone
         
-        call.on('stream', (stream) => {
-            const video = document.getElementById('remoteVideo');
-            video.srcObject = stream;
-            video.play();
+        call.on('stream', (remoteStream) => {
+            const vid = document.getElementById('videoFeed');
+            vid.srcObject = remoteStream;
+            vid.style.transform = "scaleX(1)"; // Un-mirror for the viewer
         });
     }
 
-    // --- PHONE RESPONSE ---
+    // ANSWER (Phone Side)
     peer.on('call', (call) => {
-        if (localStream) {
-            call.answer(localStream);
-        } else {
-            alert("Someone is trying to watch, but you haven't clicked 'Share Screen' yet!");
-        }
+        call.answer(localStream); // Phone sends its camera stream to the PC
     });
 </script>
 
